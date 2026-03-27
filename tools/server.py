@@ -253,9 +253,7 @@ def suggest():
         return jsonify({"error": "Anthropic API key not configured. Add it in Options."}), 402
 
     try:
-        import claude_assist
-        import memory_store
-        import resume_manager
+        from tools import claude_assist, memory_store, resume_manager
 
         resume_name = resume_manager.get_active_name(db, user.id)
         resume_text = resume_manager.get_resume_text(db, user.id, resume_name) if resume_name else ""
@@ -288,7 +286,7 @@ def save_memory():
     answer   = data.get("answer", "")
     if not question or not answer:
         return jsonify({"error": "question and answer required"}), 400
-    import memory_store
+    from tools import memory_store
     entry = memory_store.save(db, user.id, question, answer, data.get("metadata"))
     return jsonify(entry)
 
@@ -302,7 +300,7 @@ def search_memory():
     top_k = int(request.args.get("top_k", 5))
     if not query:
         return jsonify([])
-    import memory_store
+    from tools import memory_store
     return jsonify(memory_store.search(db, user.id, query, top_k=top_k))
 
 
@@ -311,7 +309,7 @@ def search_memory():
 def get_memory():
     user: User = g.user
     db = g.db
-    import memory_store
+    from tools import memory_store
     return jsonify(memory_store.get_all(db, user.id))
 
 
@@ -320,7 +318,7 @@ def get_memory():
 def delete_memory(entry_id):
     user: User = g.user
     db = g.db
-    import memory_store
+    from tools import memory_store
     ok = memory_store.delete(db, user.id, entry_id)
     return jsonify({"ok": ok})
 
@@ -332,7 +330,7 @@ def delete_memory(entry_id):
 def list_resumes():
     user: User = g.user
     db = g.db
-    import resume_manager
+    from tools import resume_manager
     return jsonify(resume_manager.list_resumes(db, user.id))
 
 
@@ -347,7 +345,7 @@ def upload_resume_pdf():
     if not b64:
         return jsonify({"error": "file_data required"}), 400
     try:
-        import resume_manager
+        from tools import resume_manager
         result = resume_manager.save_pdf_base64(db, user.id, name, b64)
         return jsonify(result)
     except Exception as e:
@@ -366,7 +364,7 @@ def resume_from_url():
     if not url:
         return jsonify({"error": "url required"}), 400
     try:
-        import resume_manager
+        from tools import resume_manager
         return jsonify(resume_manager.save_from_url(db, user.id, name, url))
     except Exception as e:
         logger.error("/resumes/from-url error: %s", e)
@@ -383,7 +381,7 @@ def resume_from_text():
     content = data.get("content", "")
     if not content.strip():
         return jsonify({"error": "content required"}), 400
-    import resume_manager
+    from tools import resume_manager
     return jsonify(resume_manager.save_text(db, user.id, name, content))
 
 
@@ -392,7 +390,7 @@ def resume_from_text():
 def get_active_resume():
     user: User = g.user
     db = g.db
-    import resume_manager
+    from tools import resume_manager
     return jsonify(resume_manager.get_active_resume(db, user.id))
 
 
@@ -405,7 +403,7 @@ def set_active_resume():
     name = data.get("name", "")
     if not name:
         return jsonify({"error": "name required"}), 400
-    import resume_manager
+    from tools import resume_manager
     resume_manager.set_active(db, user.id, name)
     return jsonify({"ok": True})
 
@@ -415,7 +413,7 @@ def set_active_resume():
 def delete_resume(name):
     user: User = g.user
     db = g.db
-    import resume_manager
+    from tools import resume_manager
     ok = resume_manager.delete_resume(db, user.id, name)
     return jsonify({"ok": ok})
 
@@ -441,7 +439,7 @@ def log_application():
         job_desc = data.get("job_description", "") or data.get("page_context", {}).get("description", "")
         if job_desc and keys["anthropic"]:
             try:
-                import claude_assist
+                from tools import claude_assist
                 job_type = claude_assist.extract_job_type(job_desc, api_key=keys["anthropic"]) or ""
             except Exception as e:
                 logger.warning("Job type AI extraction failed (%s), using keyword fallback", e)
@@ -455,12 +453,17 @@ def log_application():
     today  = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     resume_attachment = data.get("resume_attachment") or {}
-    # Generate S3 URL from path if url not already set
-    if resume_attachment and not resume_attachment.get("url") and resume_attachment.get("path"):
-        s3_bucket = os.getenv("S3_BUCKET_NAME", "")
-        s3_region = os.getenv("S3_REGION", "us-east-1")
-        resume_attachment["url"] = f"https://{s3_bucket}.s3.{s3_region}.amazonaws.com/{resume_attachment['path']}"
-    drive_link = resume_attachment.get("url", "") if resume_attachment else ""
+    # If no URL in attachment, look up active resume from DB directly
+    if not resume_attachment.get("url"):
+        try:
+            from tools import resume_manager
+            active_info = resume_manager.get_active_resume(db, user.id)
+            att = active_info.get("attachment") or {}
+            if att.get("url"):
+                resume_attachment = att
+        except Exception as _re:
+            logger.warning("Could not fetch active resume for log_application: %s", _re)
+    drive_link = resume_attachment.get("url", "")
 
     # Persist in DB
     application = Application(
@@ -488,7 +491,7 @@ def log_application():
         from tools import sheets_logger
         google_token = decrypt(user.google_token_json or "")
         sheets_logger.log_application(
-            {**data, "job_type": job_type},
+            {**data, "job_type": job_type, "resume_attachment": resume_attachment},
             sheets_id=user.sheets_id,
             google_token_json=google_token or None,
         )
@@ -633,7 +636,7 @@ def extract_context():
         return jsonify({"role": "", "company": ""})
     keys = _api_keys(user)
     try:
-        import claude_assist
+        from tools import claude_assist
         result = claude_assist.extract_job_context(page_text, api_key=keys["anthropic"] or None)
         return jsonify(result)
     except Exception as e:
@@ -660,8 +663,7 @@ def cover_letter():
         return jsonify({"error": "Anthropic API key not configured"}), 402
 
     try:
-        import claude_assist
-        import resume_manager
+        from tools import claude_assist, resume_manager
         resume_name = resume_manager.get_active_name(db, user.id)
         resume_text = resume_manager.get_resume_text(db, user.id, resume_name) if resume_name else ""
         letter = claude_assist.generate_cover_letter(
