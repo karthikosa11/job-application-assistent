@@ -99,7 +99,7 @@ def google_auth_url(redirect_uri: str, state: str = "") -> str:
         "response_type": "code",
         "scope": SCOPES,
         "access_type": "offline",
-        "prompt": "select_account",
+        "prompt": "consent",
     }
     if state:
         params["state"] = state
