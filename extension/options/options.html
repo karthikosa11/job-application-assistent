@@ -301,6 +301,20 @@
     <button class="btn btn-primary" id="btnSaveApiKeys">Save API Keys</button>
   </div>
 
+  <!-- ── Google Sheets ────────────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">📊 Google Sheets Tracking</div>
+    <div class="form-hint" style="margin-bottom:12px">Every job application you log will be automatically added to your Google Sheet. Your Google account was connected when you signed in.</div>
+    <div class="form-row" style="margin-bottom:0">
+      <label class="form-label">Google Sheet ID <span class="optional">(optional)</span></label>
+      <input class="form-input" id="sheetsId" type="text" placeholder="Paste your Google Sheet ID here" autocomplete="off" />
+      <div class="form-hint">Open your Google Sheet → copy the long ID from the URL: docs.google.com/spreadsheets/d/<strong>THIS_PART</strong>/edit</div>
+    </div>
+    <hr />
+    <button class="btn btn-primary" id="btnSaveSheets">Save Sheet ID</button>
+    <span id="sheetsStatus" style="margin-left:10px;font-size:13px;color:#6b7280"></span>
+  </div>
+
   <!-- ── Server Connection ─────────────────────────────────────────────────── -->
   <div class="card">
     <div class="card-title">🖥 Server Connection</div>

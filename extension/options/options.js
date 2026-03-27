@@ -337,6 +337,46 @@ async function sendTestWhatsApp() {
   }
 }
 
+// ─── Google Sheets ────────────────────────────────────────────────────────────
+
+async function loadSheetsId() {
+  try {
+    const resp = await sendMsg("GET_CONFIG");
+    const cfg = resp.config || {};
+    if (cfg.sheets_id) {
+      document.getElementById("sheetsId").value = cfg.sheets_id;
+      document.getElementById("sheetsStatus").textContent = "✅ Connected";
+      document.getElementById("sheetsStatus").style.color = "#22c55e";
+    }
+  } catch { /* ignore if not logged in */ }
+}
+
+async function saveSheetsId() {
+  const sheetsId = document.getElementById("sheetsId").value.trim();
+  const statusEl = document.getElementById("sheetsStatus");
+  const btn = document.getElementById("btnSaveSheets");
+
+  if (!sheetsId) {
+    statusEl.textContent = "Please enter a Sheet ID";
+    statusEl.style.color = "#ef4444";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+  try {
+    await sendMsg("SAVE_CONFIG", { sheets_id: sheetsId });
+    statusEl.textContent = "✅ Saved!";
+    statusEl.style.color = "#22c55e";
+  } catch (e) {
+    statusEl.textContent = "Error: " + e.message;
+    statusEl.style.color = "#ef4444";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save Sheet ID";
+  }
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -346,6 +386,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // API Keys
   document.getElementById("btnSaveApiKeys").addEventListener("click", saveApiKeys);
+
+  // Google Sheets
+  document.getElementById("btnSaveSheets").addEventListener("click", saveSheetsId);
 
   // Server check
   document.getElementById("btnCheckServer").addEventListener("click", checkServer);
@@ -373,6 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load data
   loadAccount();
   loadApiKeys();
+  loadSheetsId();
   loadResumes();
   loadWhatsAppSettings();
 });

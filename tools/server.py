@@ -109,6 +109,16 @@ def auth_google_callback():
     name = userinfo.get("name", "")
     picture = userinfo.get("picture", "")
 
+    # Build token JSON for Sheets access (store access + refresh token)
+    google_token_data = {
+        "token": tokens.get("access_token"),
+        "refresh_token": tokens.get("refresh_token"),
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "client_id": GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "scopes": tokens.get("scope", "").split(),
+    }
+
     db = SessionLocal()
     try:
         user = db.query(User).filter_by(google_id=google_id).first()
@@ -121,6 +131,8 @@ def auth_google_callback():
             user.email = email
             user.name = name
             user.picture_url = picture
+        # Always update the google token (refresh it on every login)
+        user.google_token_json = encrypt(json.dumps(google_token_data))
         db.commit()
         jwt_token = create_jwt(user.id, email)
     finally:
@@ -173,6 +185,7 @@ def get_config():
         "has_openai_key": bool(keys["openai"]),
         "has_gemini_key": bool(keys["gemini"]),
         "has_sheets": bool(user.sheets_id),
+        "sheets_id": user.sheets_id or "",
         "whatsapp_recipient": user.whatsapp_recipient or "",
     })
 
