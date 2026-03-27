@@ -1,0 +1,36 @@
+# Environment and secrets
+.env
+.env.*
+!.env.production.example
+credentials.json
+token.json
+
+# Local data files
+data/
+*.db
+*.sqlite
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyc
+.pytest_cache/
+
+# Dev tools
+.venv/
+venv/
+env/
+node_modules/
+.git/
+.gitignore
+
+# Extension source (not needed in container)
+extension/
+
+# Alembic doesn't need tests
+tests/
+
+# IDE
+.vscode/
+.idea/
+*.swp

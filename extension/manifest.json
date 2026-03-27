@@ -1,0 +1,79 @@
+{
+  "manifest_version": 3,
+  "name": "Job Application Assistant",
+  "version": "1.0.0",
+  "description": "AI-powered job application assistant with Google Sheets tracking, Gmail monitoring, and WhatsApp notifications.",
+
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "identity"
+  ],
+
+  "host_permissions": [
+    "http://127.0.0.1:8765/*",
+    "https://*.awsapprunner.com/*",
+    "https://www.linkedin.com/*",
+    "https://boards.greenhouse.io/*",
+    "https://*.greenhouse.io/*",
+    "https://jobs.lever.co/*",
+    "https://*.myworkdayjobs.com/*",
+    "https://*.workday.com/*",
+    "https://*.icims.com/*",
+    "https://*.smartrecruiters.com/*",
+    "https://www.indeed.com/*",
+    "https://*.taleo.net/*",
+    "https://*.jobvite.com/*",
+    "https://www.glassdoor.com/*",
+    "https://www.ziprecruiter.com/*",
+    "https://wellfound.com/*",
+    "https://angel.co/*",
+    "https://*.builtin.com/*",
+    "https://apply.workable.com/*",
+    "https://www.dice.com/*",
+    "<all_urls>"
+  ],
+
+  "background": {
+    "service_worker": "background/service_worker.js"
+  },
+
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "assets/icon-16.png",
+      "48": "assets/icon-48.png",
+      "128": "assets/icon-128.png"
+    }
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content_script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "options_page": "options/options.html",
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "sidebar/sidebar.html",
+        "sidebar/sidebar.css",
+        "sidebar/sidebar.js",
+        "assets/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+
+  "icons": {
+    "16": "assets/icon-16.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  }
+}

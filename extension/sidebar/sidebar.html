@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Assistant</title>
+  <link rel="stylesheet" href="sidebar.css" />
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <div class="header">
+    <div class="header-top">
+      <div class="header-brand">
+        <div class="brand-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <span class="header-title">Job Assistant</span>
+      </div>
+      <div class="header-right">
+        <span class="status-dot" id="statusDot" title="Checking server..."></span>
+      </div>
+    </div>
+    <div class="job-info" id="jobInfo">
+      <span class="company" id="jobCompany">Detecting job…</span>
+      <span class="job-sep" id="jobSep">·</span>
+      <span class="job-role" id="jobTitle"></span>
+    </div>
+    <div class="header-footer">
+      <div class="resume-badge" id="resumeBadge">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span id="resumeBadgeText">No resume set</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tabs ────────────────────────────────────────────────────────────── -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="fields">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+      Fields
+    </button>
+    <button class="tab-btn" data-tab="history">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      History
+    </button>
+    <button class="tab-btn" data-tab="chat">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Chat
+    </button>
+  </div>
+
+  <!-- ── Fields Tab ──────────────────────────────────────────────────────── -->
+  <div class="tab-content active" id="tab-fields">
+    <div class="fields-actions">
+      <button class="btn btn-ghost btn-sm" id="btnRefresh">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.98"/></svg>
+        Refresh
+      </button>
+      <button class="btn btn-primary btn-sm" id="btnAutoFill">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Fill All
+      </button>
+    </div>
+    <div class="fields-list" id="fieldsList">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="empty-title">Scanning fields</div>
+        <div class="empty-text">Form fields will appear here once the page loads.</div>
+      </div>
+    </div>
+
+    <!-- Suggestion panel -->
+    <div class="suggestion-panel" id="suggestionPanel">
+      <div class="suggestion-header">
+        <span class="suggestion-label">Suggestion</span>
+        <button class="icon-btn" id="btnClosePanel" title="Dismiss">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="suggestion-question" id="suggestionQuestion"></div>
+      <div class="suggestion-text" id="suggestionText"></div>
+      <div class="suggestion-actions">
+        <button class="btn btn-success btn-sm" id="btnAccept">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Accept &amp; Fill
+        </button>
+        <button class="btn btn-ghost btn-sm" id="btnEditSuggestion">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+        <button class="btn btn-ghost btn-sm" id="btnRegenerate">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.98"/></svg>
+          Retry
+        </button>
+      </div>
+    </div>
+
+    <!-- Log application -->
+    <div class="log-section">
+      <button class="btn btn-outline" style="width:100%" id="btnLog">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Log This Application
+      </button>
+    </div>
+  </div>
+
+  <!-- ── History Tab ─────────────────────────────────────────────────────── -->
+  <div class="tab-content" id="tab-history">
+    <div class="history-search">
+      <div class="search-wrap">
+        <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" id="historySearch" placeholder="Search saved answers…" type="text" />
+      </div>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
+        </div>
+        <div class="empty-title">No saved answers</div>
+        <div class="empty-text">Answers you save will appear here for quick reuse.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Chat Tab ────────────────────────────────────────────────────────── -->
+  <div class="tab-content" id="tab-chat">
+    <div class="chat-toolbar">
+      <div class="model-select-wrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        <select id="chatModelSelect" class="chat-model-select">
+          <option value="">Loading…</option>
+        </select>
+      </div>
+      <div class="chat-toolbar-actions">
+        <button class="icon-btn" id="btnClearChat" title="Clear conversation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+        <button class="btn btn-primary btn-sm" id="btnSaveChat">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save
+        </button>
+      </div>
+    </div>
+    <div class="chat-context" id="chatContext"></div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="empty-title">Ask anything</div>
+        <div class="empty-text">Paste a job question and get a tailored answer based on your resume.</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chatInput" rows="2" placeholder="Ask a question… (Enter to send)"></textarea>
+      <button class="send-btn" id="btnSendChat" title="Send">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Log Application Modal ───────────────────────────────────────────── -->
+  <div class="modal-overlay" id="logModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Log Application</div>
+        <div class="modal-subtitle">Track this job in your spreadsheet</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Company <span class="required">*</span></label>
+        <input class="form-input" id="logCompany" type="text" placeholder="e.g. Stripe" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Role <span class="required">*</span></label>
+        <input class="form-input" id="logRole" type="text" placeholder="e.g. Software Engineer" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Job Type</label>
+        <div class="form-readonly" id="logJobType">Detecting from job description…</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Resume</label>
+        <div class="resume-tabs">
+          <button class="resume-tab-btn active" data-rtab="pdf">Upload PDF</button>
+          <button class="resume-tab-btn" data-rtab="url">URL</button>
+          <button class="resume-tab-btn" data-rtab="text">Paste Text</button>
+        </div>
+
+        <div class="resume-tab-content active" id="rtab-pdf">
+          <div class="file-upload-area" id="pdfUploadArea">
+            <input type="file" id="pdfFileInput" accept=".pdf" />
+            <div class="file-upload-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            </div>
+            <div class="file-upload-label">Click or drag PDF here</div>
+            <div class="file-upload-selected" id="pdfFileName"></div>
+          </div>
+          <input class="form-input" id="pdfResumeName" type="text" placeholder="Resume name (e.g. resume_v2)" style="margin-top:8px" />
+        </div>
+
+        <div class="resume-tab-content" id="rtab-url">
+          <input class="form-input" id="resumeUrl" type="url" placeholder="https://drive.google.com/…" />
+          <input class="form-input" id="urlResumeName" type="text" placeholder="Resume name" style="margin-top:8px" />
+        </div>
+
+        <div class="resume-tab-content" id="rtab-text">
+          <textarea class="form-textarea" id="resumeText" rows="4" placeholder="Paste your resume text here…"></textarea>
+          <input class="form-input" id="textResumeName" type="text" placeholder="Resume name" style="margin-top:8px" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Confidence</label>
+        <div class="rating-row">
+          <input type="range" id="logConfidence" min="1" max="10" value="5" step="1" />
+          <span class="rating-value" id="logConfidenceValue">5 / 10</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Job Description</label>
+        <textarea class="form-textarea" id="logJobDesc" rows="3" placeholder="Auto-detected from page…"></textarea>
+      </div>
+
+      <div class="form-group">
+        <div class="cover-letter-label-row">
+          <label class="form-label">Cover Letter</label>
+          <div class="cl-btn-group">
+            <button class="btn btn-ghost btn-sm" id="btnUploadCoverLetter" type="button">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+              Upload PDF
+            </button>
+            <input type="file" id="clFileInput" accept=".pdf" style="display:none" />
+            <button class="btn btn-outline btn-sm" id="btnGenCoverLetter" type="button">Generate with AI</button>
+          </div>
+        </div>
+        <div class="cl-file-name" id="clFileName"></div>
+        <textarea class="form-textarea" id="logCoverLetter" rows="4" placeholder="Upload PDF, type, or generate a cover letter…"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="logNotes" rows="2" placeholder="Optional notes…"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="btnCancelLog">Cancel</button>
+        <button class="btn btn-primary" id="btnSubmitLog">Log Application</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Resume Manager Modal ───────────────────────────────────────────── -->
+  <div class="modal-overlay" id="resumeModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Manage Resumes</div>
+        <div class="modal-subtitle">Set which resume the AI uses for suggestions</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Saved Resumes</label>
+        <div id="resumeList">
+          <div class="empty-state" style="padding:12px 0">
+            <div class="empty-text">No resumes saved yet</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Add New</label>
+        <div class="resume-tabs">
+          <button class="resume-tab-btn active" data-mgtab="pdf">PDF</button>
+          <button class="resume-tab-btn" data-mgtab="url">URL</button>
+          <button class="resume-tab-btn" data-mgtab="text">Text</button>
+        </div>
+
+        <div class="resume-tab-content active" id="mgtab-pdf">
+          <div class="file-upload-area" id="mgPdfUploadArea">
+            <input type="file" id="mgPdfFileInput" accept=".pdf" />
+            <div class="file-upload-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            </div>
+            <div class="file-upload-label">Click or drag PDF here</div>
+            <div class="file-upload-selected" id="mgPdfFileName"></div>
+          </div>
+          <input class="form-input" id="mgPdfName" type="text" placeholder="Resume name" style="margin-top:8px" />
+        </div>
+
+        <div class="resume-tab-content" id="mgtab-url">
+          <input class="form-input" id="mgResumeUrl" type="url" placeholder="https://drive.google.com/…" />
+          <input class="form-input" id="mgUrlName" type="text" placeholder="Resume name" style="margin-top:8px" />
+        </div>
+
+        <div class="resume-tab-content" id="mgtab-text">
+          <textarea class="form-textarea" id="mgResumeText" rows="4" placeholder="Paste your resume text here…"></textarea>
+          <input class="form-input" id="mgTextName" type="text" placeholder="Resume name" style="margin-top:8px" />
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="btnCancelResume">Close</button>
+        <button class="btn btn-primary" id="btnUploadResume">Upload &amp; Set Active</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast ───────────────────────────────────────────────────────────── -->
+  <div class="toast" id="toast"></div>
+
+  <script src="sidebar.js"></script>
+</body>
+</html>

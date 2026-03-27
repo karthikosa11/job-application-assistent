@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Job Assistant Settings</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      background: #f0f2ff;
+      color: #1a1a2e;
+      padding: 0 0 40px;
+    }
+    .header {
+      background: linear-gradient(135deg, #5b5fe8, #7c4dff);
+      color: white;
+      padding: 20px 32px;
+      margin-bottom: 24px;
+    }
+    .header h1 { font-size: 20px; font-weight: 700; }
+    .header p  { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .form-row { margin-bottom: 14px; }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 5px;
+    }
+    .form-label .optional {
+      font-weight: 400;
+      text-transform: none;
+      color: #9ca3af;
+      letter-spacing: 0;
+      font-size: 11px;
+      margin-left: 4px;
+    }
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #e5e7eb;
+      border-radius: 7px;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: #5b5fe8;
+    }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .form-row-inline { display: flex; gap: 10px; align-items: flex-end; }
+    .form-row-inline .form-row { flex: 1; margin-bottom: 0; }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 7px;
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-primary   { background: #5b5fe8; color: white; }
+    .btn-primary:hover { background: #4a4fd0; }
+    .btn-secondary { background: #e8eaff; color: #5b5fe8; }
+    .btn-secondary:hover { background: #d4d6ff; }
+    .btn-danger    { background: #fee2e2; color: #dc2626; }
+    .btn-danger:hover { background: #fecaca; }
+    .btn-success   { background: #d1fae5; color: #059669; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: #f3f4f6;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; }
+    .dot.green { background: #10b981; }
+    .dot.red   { background: #ef4444; }
+
+    /* Account card */
+    .account-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    #acctAvatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      object-fit: cover; flex-shrink: 0;
+    }
+    #acctAvatarFallback {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: #e8eaff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; color: #5b5fe8; flex-shrink: 0;
+    }
+    .account-info { flex: 1; }
+    .account-name { font-weight: 700; font-size: 14px; }
+    .account-email { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    #acctNotLoggedIn { font-size: 13px; color: #6b7280; }
+
+    /* Resume list */
+    .resume-list { margin-bottom: 14px; }
+    .resume-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid #e8eaff;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      background: #fafbff;
+    }
+    .resume-item.active-resume { border-color: #5b5fe8; background: #f0f2ff; }
+    .resume-name { font-weight: 600; flex: 1; font-size: 13px; }
+    .resume-preview { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+    .resume-type-badge {
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 2px 7px;
+      text-transform: uppercase;
+    }
+    .type-pdf  { background: #fee2e2; color: #dc2626; }
+    .type-url  { background: #dbeafe; color: #2563eb; }
+    .type-text { background: #d1fae5; color: #059669; }
+    .active-badge {
+      background: #5b5fe8;
+      color: white;
+      border-radius: 8px;
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    /* Resume upload tabs */
+    .resume-tabs {
+      display: flex;
+      gap: 4px;
+      background: #f3f4f6;
+      border-radius: 7px;
+      padding: 3px;
+      margin-bottom: 10px;
+    }
+    .rtab-btn {
+      flex: 1;
+      padding: 6px;
+      border: none;
+      background: transparent;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+    }
+    .rtab-btn.active { background: white; color: #5b5fe8; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .rtab-content { display: none; }
+    .rtab-content.active { display: block; }
+
+    .file-upload-area {
+      border: 2px dashed #c7caff;
+      border-radius: 8px;
+      padding: 18px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+    .file-upload-area:hover { border-color: #5b5fe8; }
+    .file-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+    /* Toggle switch */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .toggle-label { font-size: 13px; font-weight: 500; }
+    .toggle {
+      position: relative;
+      width: 40px; height: 22px;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #d1d5db;
+      border-radius: 11px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 16px; height: 16px;
+      left: 3px; top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+    input:checked + .slider { background: #5b5fe8; }
+    input:checked + .slider::before { transform: translateX(18px); }
+
+    .form-hint {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #1a1a2e;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 999;
+    }
+    .toast.show { opacity: 1; }
+    .toast.success { background: #10b981; }
+    .toast.error   { background: #ef4444; }
+
+    hr { border: none; border-top: 1px solid #e8eaff; margin: 14px 0; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🤖 Job Assistant Settings</h1>
+  <p>Manage your account, API keys, resumes, and notification preferences.</p>
+</div>
+
+<div class="container">
+
+  <!-- ── Account ────────────────────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">👤 Account</div>
+    <div class="account-row" id="acctLoggedIn" style="display:none">
+      <img id="acctAvatar" src="" alt="" style="display:none" />
+      <div id="acctAvatarFallback"></div>
+      <div class="account-info">
+        <div class="account-name" id="acctName"></div>
+        <div class="account-email" id="acctEmail"></div>
+      </div>
+      <button class="btn btn-danger btn-sm" id="btnSignOut">Sign Out</button>
+    </div>
+    <div id="acctNotLoggedIn">
+      Not signed in. <button class="btn btn-primary btn-sm" id="btnSignIn" style="margin-left:8px">Sign in with Google</button>
+    </div>
+  </div>
+
+  <!-- ── API Keys ───────────────────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">🔑 API Keys</div>
+    <div class="form-row">
+      <label class="form-label">Anthropic API Key <span style="color:#ef4444">*</span></label>
+      <input class="form-input" id="anthropicKey" type="password" placeholder="sk-ant-..." autocomplete="off" />
+      <div class="form-hint">Required for AI suggestions and cover letter generation.</div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">OpenAI API Key <span class="optional">(optional)</span></label>
+      <input class="form-input" id="openaiKey" type="password" placeholder="sk-..." autocomplete="off" />
+      <div class="form-hint">Enables GPT-4o in the chat assistant.</div>
+    </div>
+    <div class="form-row" style="margin-bottom:0">
+      <label class="form-label">Google Gemini API Key <span class="optional">(optional)</span></label>
+      <input class="form-input" id="geminiKey" type="password" placeholder="AIza..." autocomplete="off" />
+      <div class="form-hint">Enables Gemini 1.5 Flash in the chat assistant.</div>
+    </div>
+    <hr />
+    <button class="btn btn-primary" id="btnSaveApiKeys">Save API Keys</button>
+  </div>
+
+  <!-- ── Server Connection ─────────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">🖥 Server Connection</div>
+    <button class="btn btn-secondary" id="btnCheckServer" style="margin-bottom:10px">Check Connection</button>
+    <div id="serverStatus" class="status-indicator">
+      <span class="dot" id="serverDot"></span>
+      <span id="serverStatusText">Not checked</span>
+    </div>
+  </div>
+
+  <!-- ── Resume Management ─────────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">📄 Resume Management</div>
+    <div class="resume-list" id="resumeList">Loading...</div>
+    <hr />
+    <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Add New Resume</div>
+    <div class="form-row">
+      <label class="form-label">Resume Name</label>
+      <input class="form-input" id="newResumeName" type="text" placeholder="e.g. resume_v2" />
+    </div>
+    <div class="resume-tabs">
+      <button class="rtab-btn active" data-rtab="pdf">📎 PDF</button>
+      <button class="rtab-btn" data-rtab="url">🔗 URL</button>
+      <button class="rtab-btn" data-rtab="text">📝 Text</button>
+    </div>
+    <div class="rtab-content active" id="rtab-pdf">
+      <div class="file-upload-area" id="optPdfArea">
+        <input type="file" id="optPdfInput" accept=".pdf" />
+        <div style="font-size:22px">📄</div>
+        <div style="font-size:12px; color:#6b7280; margin-top:4px">Click or drag PDF resume here</div>
+        <div style="font-size:11px; color:#10b981; margin-top:4px" id="optPdfSelected"></div>
+      </div>
+    </div>
+    <div class="rtab-content" id="rtab-url">
+      <input class="form-input" id="optResumeUrl" type="url" placeholder="https://drive.google.com/..." />
+    </div>
+    <div class="rtab-content" id="rtab-text">
+      <textarea class="form-textarea" id="optResumeText" rows="5"
+        placeholder="Paste your full resume text here..."></textarea>
+    </div>
+    <button class="btn btn-primary" id="btnSaveResume" style="margin-top:12px">Save Resume</button>
+  </div>
+
+  <!-- ── WhatsApp Notifications ────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">💬 WhatsApp Notifications</div>
+    <div class="toggle-row">
+      <span class="toggle-label">Daily Summary</span>
+      <label class="toggle">
+        <input type="checkbox" id="dailyEnabled" checked />
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="form-row-inline">
+      <div class="form-row">
+        <label class="form-label">Summary Time</label>
+        <input class="form-input" id="summaryTime" type="time" value="09:00" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Timezone</label>
+        <select class="form-select" id="summaryTimezone">
+          <option value="UTC">UTC</option>
+          <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+          <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+          <option value="Asia/Singapore">Asia/Singapore (SGT)</option>
+          <option value="America/New_York">America/New_York (ET)</option>
+          <option value="America/Los_Angeles">America/Los_Angeles (PT)</option>
+          <option value="America/Chicago">America/Chicago (CT)</option>
+          <option value="Europe/London">Europe/London (GMT)</option>
+          <option value="Europe/Berlin">Europe/Berlin (CET)</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:4px;">
+      <button class="btn btn-primary btn-sm" id="btnSaveWhatsApp">Save Settings</button>
+      <button class="btn btn-secondary btn-sm" id="btnTestSummary">Send Test Summary</button>
+      <button class="btn btn-secondary btn-sm" id="btnTestWhatsApp">Send Test Message</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="options.js"></script>
+</body>
+</html>
