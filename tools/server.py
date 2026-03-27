@@ -455,6 +455,11 @@ def log_application():
     today  = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     resume_attachment = data.get("resume_attachment") or {}
+    # Generate S3 URL from path if url not already set
+    if resume_attachment and not resume_attachment.get("url") and resume_attachment.get("path"):
+        s3_bucket = os.getenv("S3_BUCKET_NAME", "")
+        s3_region = os.getenv("S3_REGION", "us-east-1")
+        resume_attachment["url"] = f"https://{s3_bucket}.s3.{s3_region}.amazonaws.com/{resume_attachment['path']}"
     drive_link = resume_attachment.get("url", "") if resume_attachment else ""
 
     # Persist in DB
