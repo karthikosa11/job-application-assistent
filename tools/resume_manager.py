@@ -202,6 +202,8 @@ def get_active_resume(db: Session, user_id: str) -> dict:
         attachment["url"] = resume.source_url
     elif resume.resume_type == "pdf" and resume.drive_url:
         attachment["url"] = resume.drive_url
+    elif resume.resume_type == "pdf" and resume.s3_key:
+        attachment["url"] = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{resume.s3_key}"
     else:
         attachment["preview"] = (resume.content_text or "")[:200]
     return {"active_resume": name, "attachment": attachment}
