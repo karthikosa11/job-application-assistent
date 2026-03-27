@@ -480,7 +480,7 @@ def log_application():
 
     # Optional: sync to user's Google Sheet
     try:
-        import sheets_logger
+        from tools import sheets_logger
         google_token = decrypt(user.google_token_json or "")
         sheets_logger.log_application(
             {**data, "job_type": job_type},
@@ -551,7 +551,7 @@ def patch_notes(application_id):
 
     # Optional Sheets sync
     try:
-        import sheets_logger
+        from tools import sheets_logger
         google_token = decrypt(user.google_token_json or "")
         sheets_logger.append_notes(
             application_id, append_text,
