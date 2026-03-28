@@ -392,8 +392,6 @@ async function openLogModal() {
   document.getElementById("logConfidenceValue").textContent = "5 / 10";
   document.getElementById("logJobType").textContent = "Detecting...";
   logResumeAttachment = null;
-  document.getElementById("resumeText").value = "";
-  document.getElementById("textResumeName").value = "";
 
   // Populate resume dropdown
   await populateResumeSelect();
