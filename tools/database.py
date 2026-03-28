@@ -1,10 +1,4 @@
-"""
-SQLAlchemy database setup.
-
-Reads DATABASE_URL from environment.
-For local development, falls back to a SQLite file so the app starts
-without a Postgres instance.
-"""
+"""SQLAlchemy setup. Uses DATABASE_URL env var; falls back to SQLite for local dev."""
 
 import os
 from contextlib import contextmanager

@@ -1,10 +1,8 @@
 """
-Flask API server — multi-user production version.
-All routes require a valid JWT (Authorization: Bearer <token>).
-Data is scoped to the authenticated user.
+Job Assistant API server.
 
-Run locally:  python server.py
-Run in prod:  gunicorn server:app --bind 0.0.0.0:8080 --workers 2
+Local:  python server.py
+Prod:   gunicorn server:app --bind 0.0.0.0:8080 --workers 2
 """
 
 import base64
@@ -34,25 +32,13 @@ from tools.database import SessionLocal, init_db
 from tools.models import Application, User, UserConfig
 
 app = Flask(__name__)
-# Allow chrome-extension://* and localhost for dev
 CORS(app, origins=["chrome-extension://*", "http://localhost:*", "http://127.0.0.1:*"])
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
 
-# ─── Startup: create tables (SQLite dev / first-run safety net) ───────────────
-
-@app.before_request
-def _ensure_db():
-    """One-time table creation guard (idempotent)."""
-    pass  # Alembic handles migrations; init_db() called at bottom for SQLite dev
-
-
-# ─── Helpers ─────────────────────────────────────────────────────────────────
-
 def _api_keys(user: User) -> dict:
-    """Return decrypted API keys dict for a user."""
     return {
         "anthropic": decrypt(user.anthropic_api_key or ""),
         "openai":    decrypt(user.openai_api_key or ""),
@@ -76,11 +62,8 @@ def _keyword_job_type(text: str) -> str:
     return ""
 
 
-# ─── Auth ─────────────────────────────────────────────────────────────────────
-
 @app.route("/auth/google")
 def auth_google():
-    """Redirect user to Google OAuth consent screen."""
     redirect_uri = f"{APP_URL}/auth/google/callback"
     # Pass the extension's chromiumapp.org URI via state so we can redirect back
     ext_redirect = request.args.get("ext_redirect", "")
@@ -90,7 +73,6 @@ def auth_google():
 
 @app.route("/auth/google/callback")
 def auth_google_callback():
-    """Exchange auth code, upsert user, issue JWT, redirect back to extension."""
     code = request.args.get("code")
     ext_redirect = request.args.get("state", "")
     if not code:
@@ -109,7 +91,6 @@ def auth_google_callback():
     name = userinfo.get("name", "")
     picture = userinfo.get("picture", "")
 
-    # Build token JSON for Sheets access (store access + refresh token)
     google_token_data = {
         "token": tokens.get("access_token"),
         "refresh_token": tokens.get("refresh_token"),
@@ -132,16 +113,14 @@ def auth_google_callback():
             user.name = name
             user.picture_url = picture
         # Always update the google token (refresh it on every login)
-        user.google_token_json = encrypt(json.dumps(google_token_data))
+        user.google_token_json  # refresh on every login = encrypt(json.dumps(google_token_data))
         db.commit()
         jwt_token = create_jwt(user.id, email)
     finally:
         db.close()
 
-    # Redirect back to extension with token
     if ext_redirect and "chromiumapp.org" in ext_redirect:
         return redirect(f"{ext_redirect}?token={jwt_token}")
-    # Fallback: return JSON (for testing in browser)
     return jsonify({"token": jwt_token, "name": name, "email": email})
 
 
@@ -159,14 +138,10 @@ def auth_me():
     })
 
 
-# ─── Health ──────────────────────────────────────────────────────────────────
-
 @app.route("/health")
 def health():
     return jsonify({"status": "ok"})
 
-
-# ─── Config ──────────────────────────────────────────────────────────────────
 
 @app.route("/config", methods=["GET"])
 @require_auth
@@ -180,7 +155,6 @@ def get_config():
         "daily_summary_enabled": cfg.daily_summary_enabled if cfg else True,
         "daily_summary_time": cfg.daily_summary_time if cfg else "09:00",
         "daily_summary_timezone": cfg.daily_summary_timezone if cfg else "UTC",
-        # Masked API key indicators
         "has_anthropic_key": bool(keys["anthropic"]),
         "has_openai_key": bool(keys["openai"]),
         "has_gemini_key": bool(keys["gemini"]),
@@ -209,7 +183,6 @@ def save_config():
     if "daily_summary_timezone" in data:
         cfg.daily_summary_timezone = data["daily_summary_timezone"]
 
-    # API keys — encrypt before storing
     if "anthropic_api_key" in data:
         user.anthropic_api_key = encrypt(data["anthropic_api_key"]) if data["anthropic_api_key"] else None
     if "openai_api_key" in data:
@@ -217,7 +190,6 @@ def save_config():
     if "gemini_api_key" in data:
         user.gemini_api_key = encrypt(data["gemini_api_key"]) if data["gemini_api_key"] else None
 
-    # WhatsApp config
     if "whatsapp_phone_id" in data:
         user.whatsapp_phone_id = data["whatsapp_phone_id"]
     if "whatsapp_token" in data:
@@ -225,15 +197,12 @@ def save_config():
     if "whatsapp_recipient" in data:
         user.whatsapp_recipient = data["whatsapp_recipient"]
 
-    # Google Sheets
     if "sheets_id" in data:
         user.sheets_id = data["sheets_id"]
 
     db.commit()
     return jsonify({"ok": True})
 
-
-# ─── AI Suggestion ───────────────────────────────────────────────────────────
 
 @app.route("/suggest", methods=["POST"])
 @require_auth
@@ -273,8 +242,6 @@ def suggest():
         logger.error("/suggest error: %s", e)
         return jsonify({"error": str(e)}), 500
 
-
-# ─── Memory ──────────────────────────────────────────────────────────────────
 
 @app.route("/memory", methods=["POST"])
 @require_auth
@@ -323,8 +290,6 @@ def delete_memory(entry_id):
     return jsonify({"ok": ok})
 
 
-# ─── Resumes ─────────────────────────────────────────────────────────────────
-
 @app.route("/resumes", methods=["GET"])
 @require_auth
 def list_resumes():
@@ -347,7 +312,6 @@ def upload_resume_pdf():
     try:
         from tools import resume_manager
         result = resume_manager.save_pdf_base64(db, user.id, name, b64)
-        # Add S3 URL so extension can use it directly as resume_attachment
         if result.get("path") and not result.get("url"):
             s3_bucket = os.getenv("S3_BUCKET_NAME", "")
             s3_region = os.getenv("S3_REGION", "us-east-1")
@@ -423,8 +387,6 @@ def delete_resume(name):
     return jsonify({"ok": ok})
 
 
-# ─── Applications ────────────────────────────────────────────────────────────
-
 @app.route("/log_application", methods=["POST"])
 @require_auth
 def log_application():
@@ -458,7 +420,6 @@ def log_application():
     today  = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     resume_attachment = dict(data.get("resume_attachment") or {})
-    # If we have a name but no URL, look up the resume in DB to get its S3 URL
     if not resume_attachment.get("url"):
         try:
             from tools import resume_manager
@@ -500,7 +461,6 @@ def log_application():
     db.add(application)
     db.commit()
 
-    # Optional: sync to user's Google Sheet
     try:
         from tools import sheets_logger
         google_token = decrypt(user.google_token_json or "")
@@ -571,7 +531,6 @@ def patch_notes(application_id):
     app.notes = f"{app.notes or ''}\n{append_text}".strip()
     db.commit()
 
-    # Optional Sheets sync
     try:
         from tools import sheets_logger
         google_token = decrypt(user.google_token_json or "")
@@ -585,8 +544,6 @@ def patch_notes(application_id):
 
     return jsonify({"ok": True})
 
-
-# ─── Chat ─────────────────────────────────────────────────────────────────────
 
 @app.route("/chat/models", methods=["GET"])
 @require_auth
@@ -617,8 +574,6 @@ def chat_route():
         return jsonify({"error": str(e)}), 500
 
 
-# ─── Extract PDF text ─────────────────────────────────────────────────────────
-
 @app.route("/extract-pdf-text", methods=["POST"])
 @require_auth
 def extract_pdf_text():
@@ -638,8 +593,6 @@ def extract_pdf_text():
         return jsonify({"error": str(e)}), 500
 
 
-# ─── AI context extraction ────────────────────────────────────────────────────
-
 @app.route("/extract_context", methods=["POST"])
 @require_auth
 def extract_context():
@@ -657,8 +610,6 @@ def extract_context():
         logger.warning("/extract_context error: %s", e)
         return jsonify({"role": "", "company": ""})
 
-
-# ─── Cover letter ─────────────────────────────────────────────────────────────
 
 @app.route("/cover_letter", methods=["POST"])
 @require_auth
@@ -689,9 +640,7 @@ def cover_letter():
         return jsonify({"error": str(e)}), 500
 
 
-# ─── Startup ─────────────────────────────────────────────────────────────────
-
-# Init SQLite tables for local development (Alembic handles Postgres in prod)
+# init tables for local SQLite dev (Alembic handles Postgres in prod)
 if os.getenv("DATABASE_URL", "").startswith("sqlite") or not os.getenv("DATABASE_URL"):
     try:
         init_db()

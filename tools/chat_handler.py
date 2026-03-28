@@ -1,8 +1,4 @@
-"""
-Multi-provider chat handler — Claude, OpenAI GPT, Google Gemini.
-Accepts api_keys dict from the user object instead of reading env vars directly.
-Falls back to env vars when no per-user key is provided (for local dev).
-"""
+"""Chat handler — Claude, OpenAI, Gemini. Uses per-user API keys, falls back to env vars."""
 
 import os
 from dotenv import load_dotenv

@@ -1,11 +1,4 @@
-"""
-Claude API wrapper.
-Four functions:
-  - get_suggestion()       Generate an answer for a job application field
-  - classify_email()       Classify a reply email (interview/rejection/etc.)
-  - extract_company()      Extract company name from email (beats domain heuristics)
-  - extract_job_type()     Extract employment type from job description (no guessing)
-"""
+"""Claude API wrapper for suggestions, email classification, and job context extraction."""
 
 import os
 from anthropic import Anthropic

@@ -1,13 +1,9 @@
 """
 Google Sheets logger for job applications.
-Now per-user: accepts sheets_id and google_token_json from the user's DB record.
-All functions are no-ops (return gracefully) when the user hasn't configured Sheets.
 
-Schema (columns A–P):
-  A Date Applied  B Company  C Role  D Status  E Job Type
-  F Resume Attachment (JSON)  G Job URL  H Platform  I Application ID
-  J Notes  K Last Updated  L Gmail Thread ID  M Resume Drive Link
-  N Confidence  O Job Description  P Cover Letter
+Columns A–P: Date Applied, Company, Role, Status, Job Type,
+Resume (JSON), Job URL, Platform, App ID, Notes, Last Updated,
+Gmail Thread ID, Resume Drive Link, Confidence, Job Description, Cover Letter
 """
 
 import json

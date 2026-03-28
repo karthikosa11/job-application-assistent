@@ -4,7 +4,7 @@
  * Auth: JWT token stored in chrome.storage.local under "jwt_token".
  */
 
-const SERVER_BASE = "http://127.0.0.1:8765"; // Change to your production URL when deploying
+const SERVER_BASE = "https://x9krqi72yv.us-east-1.awsapprunner.com";
 const DEFAULT_TIMEOUT = 30000;
 const QUICK_TIMEOUT   = 10000;
 

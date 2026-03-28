@@ -1,8 +1,4 @@
-"""
-Q&A memory store using Jaccard similarity for fuzzy matching.
-Now backed by PostgreSQL (memory_entries table) instead of memory.json.
-All public functions accept a user_id parameter.
-"""
+"""Q&A memory store with Jaccard similarity matching, backed by PostgreSQL."""
 
 import uuid
 from datetime import datetime, timezone

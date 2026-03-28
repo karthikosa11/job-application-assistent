@@ -1,7 +1,4 @@
-"""
-Resume manager — now backed by PostgreSQL (metadata + text) + S3 (PDF files).
-All public functions accept a db session and user_id.
-"""
+"""Resume manager — PostgreSQL for metadata/text, S3 for PDF files."""
 
 import base64
 import io
@@ -11,7 +8,6 @@ import tempfile
 
 import boto3
 import requests
-from botocore.exceptions import ClientError
 from sqlalchemy.orm import Session
 
 from tools.models import Resume, UserConfig
@@ -57,16 +53,6 @@ def _upload_to_s3(user_id: str, safe_name: str, pdf_bytes: bytes) -> str:
     return key
 
 
-def _delete_from_s3(s3_key: str) -> None:
-    if not S3_BUCKET or not s3_key:
-        return
-    try:
-        _get_s3().delete_object(Bucket=S3_BUCKET, Key=s3_key)
-    except ClientError:
-        pass
-
-
-# ─── Public API ──────────────────────────────────────────────────────────────
 
 def save_pdf(db: Session, user_id: str, name: str, file_bytes: bytes) -> dict:
     safe = _safe_name(name)
@@ -222,8 +208,6 @@ def delete_resume(db: Session, user_id: str, name: str) -> bool:
     resume = db.query(Resume).filter_by(user_id=user_id, name=name).first()
     if not resume:
         return False
-    if resume.s3_key:
-        _delete_from_s3(resume.s3_key)
     db.delete(resume)
 
     # Clear active if it was this resume

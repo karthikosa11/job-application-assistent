@@ -1,10 +1,4 @@
-"""
-Authentication helpers.
-
-- Google OAuth2 flow (server-side redirect, works with chrome.identity.launchWebAuthFlow)
-- JWT creation / verification
-- @require_auth Flask decorator
-"""
+"""Google OAuth2, JWT creation/verification, and @require_auth decorator."""
 
 import os
 import functools
