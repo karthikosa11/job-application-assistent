@@ -347,6 +347,11 @@ def upload_resume_pdf():
     try:
         from tools import resume_manager
         result = resume_manager.save_pdf_base64(db, user.id, name, b64)
+        # Add S3 URL so extension can use it directly as resume_attachment
+        if result.get("path") and not result.get("url"):
+            s3_bucket = os.getenv("S3_BUCKET_NAME", "")
+            s3_region = os.getenv("S3_REGION", "us-east-1")
+            result["url"] = f"https://{s3_bucket}.s3.{s3_region}.amazonaws.com/{result['path']}"
         return jsonify(result)
     except Exception as e:
         logger.error("/resumes/upload-pdf error: %s", e)
@@ -452,15 +457,20 @@ def log_application():
     app_id = str(_uuid.uuid4())[:8].upper()
     today  = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    resume_attachment = data.get("resume_attachment") or {}
-    # If no URL in attachment, look up active resume from DB directly
-    if not resume_attachment.get("url"):
+    resume_attachment = dict(data.get("resume_attachment") or {})
+    # Convert S3 path → full URL (upload routes return path, not url)
+    if resume_attachment.get("path") and not resume_attachment.get("url"):
+        s3_bucket = os.getenv("S3_BUCKET_NAME", "")
+        s3_region = os.getenv("S3_REGION", "us-east-1")
+        resume_attachment["url"] = f"https://{s3_bucket}.s3.{s3_region}.amazonaws.com/{resume_attachment['path']}"
+    # Only fall back to active resume when NO attachment info at all
+    if not resume_attachment.get("url") and not resume_attachment.get("name"):
         try:
             from tools import resume_manager
             active_info = resume_manager.get_active_resume(db, user.id)
             att = active_info.get("attachment") or {}
-            if att.get("url"):
-                resume_attachment = att
+            if att:
+                resume_attachment = dict(att)
         except Exception as _re:
             logger.warning("Could not fetch active resume for log_application: %s", _re)
     drive_link = resume_attachment.get("url", "")
