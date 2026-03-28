@@ -175,17 +175,7 @@ async function loadResumes() {
     const resp = await sendMsg("GET_RESUMES");
     const resumes = resp.resumes || [];
 
-    // Update active resume banner
-    const active = resumes.find(r => r.is_active);
-    const banner = document.getElementById("activeResumeBanner");
-    if (active) {
-      document.getElementById("activeResumeName").textContent = active.name;
-      banner.style.display = "flex";
-    } else {
-      banner.style.display = "none";
-    }
-
-    if (!resumes.length) {
+if (!resumes.length) {
       list.innerHTML = `<div style="font-size:13px; color:#9ca3af; padding: 8px 0;">No resumes saved yet. Add one below.</div>`;
       return;
     }
