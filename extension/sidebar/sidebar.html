@@ -188,33 +188,10 @@
 
       <div class="form-group">
         <label class="form-label">Resume</label>
-        <div class="resume-tabs">
-          <button class="resume-tab-btn active" data-rtab="pdf">Upload PDF</button>
-          <button class="resume-tab-btn" data-rtab="url">URL</button>
-          <button class="resume-tab-btn" data-rtab="text">Paste Text</button>
-        </div>
-
-        <div class="resume-tab-content active" id="rtab-pdf">
-          <div class="file-upload-area" id="pdfUploadArea">
-            <input type="file" id="pdfFileInput" accept=".pdf" />
-            <div class="file-upload-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-            </div>
-            <div class="file-upload-label">Click or drag PDF here</div>
-            <div class="file-upload-selected" id="pdfFileName"></div>
-          </div>
-          <input class="form-input" id="pdfResumeName" type="text" placeholder="Resume name (e.g. resume_v2)" style="margin-top:8px" />
-        </div>
-
-        <div class="resume-tab-content" id="rtab-url">
-          <input class="form-input" id="resumeUrl" type="url" placeholder="https://drive.google.com/…" />
-          <input class="form-input" id="urlResumeName" type="text" placeholder="Resume name" style="margin-top:8px" />
-        </div>
-
-        <div class="resume-tab-content" id="rtab-text">
-          <textarea class="form-textarea" id="resumeText" rows="4" placeholder="Paste your resume text here…"></textarea>
-          <input class="form-input" id="textResumeName" type="text" placeholder="Resume name" style="margin-top:8px" />
-        </div>
+        <select class="form-input" id="resumeSelect" style="margin-bottom:0">
+          <option value="">Loading resumes…</option>
+        </select>
+        <div style="font-size:11px;color:#9ca3af;margin-top:4px">To add resumes, open the Resume Manager (top of sidebar).</div>
       </div>
 
       <div class="form-group">

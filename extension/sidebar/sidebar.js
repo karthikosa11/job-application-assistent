@@ -9,9 +9,8 @@
 let pageContext = null;       // { job_title, company, description, fields, url, platform }
 let currentField = null;      // field being suggested for
 let currentSuggestion = "";   // last suggestion text
-let activeResumeTab = "url";  // resume sub-tab in log modal
 let detectedJobType = "";     // job type extracted on modal open
-let pdfFile = null;           // File object from input
+let logResumeAttachment = null; // attachment selected in log modal resume dropdown
 let historyDebounce = null;
 let chatHistory = [];    // [{role: "user"|"assistant", content: "..."}]
 let chatModelId = "";
@@ -392,30 +391,12 @@ async function openLogModal() {
   document.getElementById("logConfidence").value = "5";
   document.getElementById("logConfidenceValue").textContent = "5 / 10";
   document.getElementById("logJobType").textContent = "Detecting...";
-  pdfFile = null;
-  document.getElementById("pdfFileName").textContent = "";
-  document.getElementById("pdfResumeName").value = "";
+  logResumeAttachment = null;
   document.getElementById("resumeText").value = "";
   document.getElementById("textResumeName").value = "";
 
-  // Pre-fill URL tab with active resume if it's a URL type
-  document.getElementById("resumeUrl").value = "";
-  document.getElementById("urlResumeName").value = "";
-  try {
-    const cfg = await sendMsg("GET_CONFIG");
-    const activeResume = cfg?.config?.active_resume;
-    if (activeResume) {
-      const res = await sendMsg("GET_RESUMES");
-      const match = (res?.resumes || []).find(r => r.name === activeResume && r.type === "url");
-      if (match) {
-        document.getElementById("resumeUrl").value = match.url || "";
-        document.getElementById("urlResumeName").value = match.name || "";
-      }
-    }
-  } catch (_) {}
-
-  // Switch to URL tab by default (Google Drive link)
-  switchResumeTab("url");
+  // Populate resume dropdown
+  await populateResumeSelect();
 
   document.getElementById("logModal").classList.add("visible");
 
@@ -447,14 +428,31 @@ function closeLogModal() {
   document.getElementById("logModal").classList.remove("visible");
 }
 
-function switchResumeTab(tab) {
-  activeResumeTab = tab;
-  document.querySelectorAll(".resume-tab-btn").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.rtab === tab);
-  });
-  document.querySelectorAll(".resume-tab-content").forEach(el => {
-    el.classList.toggle("active", el.id === `rtab-${tab}`);
-  });
+async function populateResumeSelect() {
+  const sel = document.getElementById("resumeSelect");
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— No resume —</option>';
+  logResumeAttachment = null;
+  try {
+    const res = await sendMsg("GET_RESUMES");
+    const resumes = res?.resumes || [];
+    resumes.forEach(r => {
+      const opt = document.createElement("option");
+      opt.value = r.name;
+      opt.textContent = r.name + (r.is_active ? " (active)" : "");
+      sel.appendChild(opt);
+      if (r.is_active) {
+        sel.value = r.name;
+        logResumeAttachment = buildAttachment(r);
+      }
+    });
+  } catch (_) {}
+}
+
+function buildAttachment(resume) {
+  const att = { type: resume.type, name: resume.name };
+  if (resume.url) att.url = resume.url;
+  return att;
 }
 
 async function submitLog() {
@@ -472,40 +470,10 @@ async function submitLog() {
   btn.disabled = true;
   btn.innerHTML = `<span class="spinner"></span> Logging...`;
 
-  let resumeAttachment = null;
+  // Use the resume selected in the dropdown
+  const resumeAttachment = logResumeAttachment || null;
 
   try {
-    // Upload resume based on active tab — each branch wrapped so a failure doesn't abort logging
-    try {
-      if (activeResumeTab === "pdf" && pdfFile) {
-        const name = document.getElementById("pdfResumeName").value.trim() || pdfFile.name.replace(".pdf", "");
-        const b64 = await readFileAsBase64(pdfFile);
-        const resp = await sendMsg("UPLOAD_RESUME_PDF", { name, file_data: b64, filename: pdfFile.name });
-        resumeAttachment = resp.attachment;
-      } else if (activeResumeTab === "url") {
-        const url  = document.getElementById("resumeUrl").value.trim();
-        const name = document.getElementById("urlResumeName").value.trim() || "resume";
-        if (url) {
-          const resp = await sendMsg("UPLOAD_RESUME_URL", { name, url });
-          resumeAttachment = resp.attachment;
-        }
-      } else if (activeResumeTab === "text") {
-        const content = document.getElementById("resumeText").value.trim();
-        const name    = document.getElementById("textResumeName").value.trim() || "resume";
-        if (content) {
-          const resp = await sendMsg("UPLOAD_RESUME_TEXT", { name, content });
-          resumeAttachment = resp.attachment;
-        }
-      }
-    } catch (_) { /* resume upload failed — fall through to active-resume fallback */ }
-
-    // Always fall back to the active resume's stored attachment (covers upload failure + no input)
-    if (!resumeAttachment) {
-      try {
-        const activeResp = await sendMsg("GET_ACTIVE_RESUME");
-        if (activeResp.attachment) resumeAttachment = activeResp.attachment;
-      } catch (_) {}
-    }
 
     const jobDesc     = document.getElementById("logJobDesc").value.trim();
     const coverLetter = document.getElementById("logCoverLetter").value.trim();
@@ -977,15 +945,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("logConfidenceValue").textContent = `${e.target.value} / 10`;
   });
 
-  // Resume sub-tabs
-  document.querySelectorAll(".resume-tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => switchResumeTab(btn.dataset.rtab));
-  });
-
-  // PDF file input
-  document.getElementById("pdfFileInput").addEventListener("change", (e) => {
-    pdfFile = e.target.files[0] || null;
-    document.getElementById("pdfFileName").textContent = pdfFile ? `Selected: ${pdfFile.name}` : "";
+  // Resume dropdown in log modal
+  document.getElementById("resumeSelect").addEventListener("change", async (e) => {
+    const name = e.target.value;
+    if (!name) { logResumeAttachment = null; return; }
+    try {
+      const res = await sendMsg("GET_RESUMES");
+      const resume = (res?.resumes || []).find(r => r.name === name);
+      logResumeAttachment = resume ? buildAttachment(resume) : null;
+    } catch (_) { logResumeAttachment = null; }
   });
 
   // History search

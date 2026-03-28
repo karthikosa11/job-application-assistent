@@ -165,6 +165,8 @@ def list_resumes(db: Session, user_id: str) -> list:
         }
         if r.resume_type == "url" and r.source_url:
             entry["url"] = r.source_url
+        elif r.resume_type == "pdf" and r.s3_key:
+            entry["url"] = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{r.s3_key}"
         if r.drive_url:
             entry["drive_url"] = r.drive_url
         result.append(entry)
