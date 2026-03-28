@@ -380,8 +380,16 @@ async function loadHistory(query = "") {
 // ─── Log Application Modal ────────────────────────────────────────────────────
 
 async function openLogModal() {
-  // Pre-fill company & role from page context
-  document.getElementById("logCompany").value = pageContext?.company || "";
+  // Pre-fill company & role from page context; fall back to domain name if company undetected
+  let company = pageContext?.company || "";
+  if (!company && pageContext?.url) {
+    try {
+      const host = new URL(pageContext.url).hostname.replace(/^www\./, "");
+      company = host.split(".")[0];
+      company = company.charAt(0).toUpperCase() + company.slice(1);
+    } catch (_) {}
+  }
+  document.getElementById("logCompany").value = company;
   document.getElementById("logRole").value    = pageContext?.job_title || "";
   document.getElementById("logNotes").value   = "";
   document.getElementById("logJobDesc").value = pageContext?.description || "";

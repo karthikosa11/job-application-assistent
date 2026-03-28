@@ -593,7 +593,7 @@ def patch_notes(application_id):
 def chat_models():
     user: User = g.user
     keys = _api_keys(user)
-    from chat_handler import get_available_models
+    from tools.chat_handler import get_available_models
     return jsonify(get_available_models(api_keys=keys))
 
 
@@ -609,7 +609,7 @@ def chat_route():
         return jsonify({"error": "messages required"}), 400
     keys = _api_keys(user)
     try:
-        from chat_handler import chat as llm_chat
+        from tools.chat_handler import chat as llm_chat
         reply = llm_chat(model_id, messages, system, api_keys=keys)
         return jsonify({"reply": reply})
     except Exception as e:
