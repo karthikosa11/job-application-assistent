@@ -458,19 +458,23 @@ def log_application():
     today  = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     resume_attachment = dict(data.get("resume_attachment") or {})
-    # Convert S3 path → full URL (upload routes return path, not url)
-    if resume_attachment.get("path") and not resume_attachment.get("url"):
-        s3_bucket = os.getenv("S3_BUCKET_NAME", "")
-        s3_region = os.getenv("S3_REGION", "us-east-1")
-        resume_attachment["url"] = f"https://{s3_bucket}.s3.{s3_region}.amazonaws.com/{resume_attachment['path']}"
-    # Only fall back to active resume when NO attachment info at all
-    if not resume_attachment.get("url") and not resume_attachment.get("name"):
+    # If we have a name but no URL, look up the resume in DB to get its S3 URL
+    if not resume_attachment.get("url"):
         try:
             from tools import resume_manager
-            active_info = resume_manager.get_active_resume(db, user.id)
-            att = active_info.get("attachment") or {}
-            if att:
-                resume_attachment = dict(att)
+            from tools.models import Resume as ResumeModel
+            lookup_name = resume_attachment.get("name") or resume_manager.get_active_name(db, user.id)
+            if lookup_name:
+                db_resume = db.query(ResumeModel).filter_by(user_id=user.id, name=lookup_name).first()
+                if db_resume:
+                    resume_attachment["name"] = db_resume.name
+                    resume_attachment["type"] = db_resume.resume_type
+                    if db_resume.s3_key:
+                        s3_bucket = os.getenv("S3_BUCKET_NAME", "")
+                        s3_region = os.getenv("S3_REGION", "us-east-1")
+                        resume_attachment["url"] = f"https://{s3_bucket}.s3.{s3_region}.amazonaws.com/{db_resume.s3_key}"
+                    elif db_resume.source_url:
+                        resume_attachment["url"] = db_resume.source_url
         except Exception as _re:
             logger.warning("Could not fetch active resume for log_application: %s", _re)
     drive_link = resume_attachment.get("url", "")
