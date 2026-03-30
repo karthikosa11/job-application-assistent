@@ -155,3 +155,17 @@ class Application(Base):
     applied_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     user: Mapped["User"] = relationship("User", back_populates="applications")
+
+
+# ─── Feedback Reports ──────────────────────────────────────────────────────────
+
+class FeedbackReport(Base):
+    __tablename__ = "feedback_reports"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    reply_email: Mapped[str | None] = mapped_column(String(255))
+    page_url: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)

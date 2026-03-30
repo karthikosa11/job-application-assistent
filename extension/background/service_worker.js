@@ -360,6 +360,18 @@ async function handleMessage(msg, sendResponse) {
         break;
       }
 
+      case "REPORT_ISSUE": {
+        const token = await getStoredToken();
+        const authHeader = token ? { "Authorization": `Bearer ${token}` } : {};
+        await fetch(`${SERVER_BASE}/feedback`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...authHeader },
+          body: JSON.stringify(payload),
+        });
+        reply(sendResponse, {});
+        break;
+      }
+
       default:
         replyError(sendResponse, new Error(`Unknown message type: ${type}`));
     }

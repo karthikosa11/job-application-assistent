@@ -140,6 +140,44 @@ async function loadMainContent() {
   }
 }
 
+// ─── Report Issue ──────────────────────────────────────────────────────────────
+
+function openReportModal() {
+  document.getElementById("reportMessage").value = "";
+  document.getElementById("reportEmail").value = "";
+  document.getElementById("reportStatus").textContent = "";
+  document.getElementById("reportOverlay").classList.add("visible");
+  document.getElementById("reportMessage").focus();
+}
+
+function closeReportModal() {
+  document.getElementById("reportOverlay").classList.remove("visible");
+}
+
+async function submitReport() {
+  const message = document.getElementById("reportMessage").value.trim();
+  if (!message) return;
+
+  const btn = document.getElementById("btnSubmitReport");
+  btn.disabled = true;
+  btn.textContent = "Sending…";
+
+  try {
+    await sendMsg("REPORT_ISSUE", {
+      message,
+      reply_email: document.getElementById("reportEmail").value.trim(),
+    });
+    document.getElementById("reportStatus").textContent = "Report sent. Thank you!";
+    setTimeout(closeReportModal, 1500);
+  } catch {
+    document.getElementById("reportStatus").textContent = "Failed to send. Please try again.";
+    document.getElementById("reportStatus").style.color = "#ef4444";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Send Report";
+  }
+}
+
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
 async function init() {
@@ -148,6 +186,15 @@ async function init() {
   document.getElementById("settingsLink").addEventListener("click", (e) => {
     e.preventDefault();
     chrome.runtime.openOptionsPage();
+  });
+  document.getElementById("reportLink").addEventListener("click", (e) => {
+    e.preventDefault();
+    openReportModal();
+  });
+  document.getElementById("btnCancelReport").addEventListener("click", closeReportModal);
+  document.getElementById("btnSubmitReport").addEventListener("click", submitReport);
+  document.getElementById("reportOverlay").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("reportOverlay")) closeReportModal();
   });
 
   // Check if already logged in

@@ -29,7 +29,7 @@ from tools.auth import (
 )
 from tools.crypto import decrypt, encrypt
 from tools.database import SessionLocal, init_db
-from tools.models import Application, User, UserConfig
+from tools.models import Application, FeedbackReport, User, UserConfig
 
 app = Flask(__name__)
 CORS(app, origins=["chrome-extension://*", "http://localhost:*", "http://127.0.0.1:*"])
@@ -638,6 +638,73 @@ def cover_letter():
     except Exception as e:
         logger.error("/cover_letter error: %s", e)
         return jsonify({"error": str(e)}), 500
+
+
+FEEDBACK_EMAIL = os.getenv("FEEDBACK_EMAIL", "")
+
+
+def _send_feedback_email(message: str, reply_email: str, page_url: str, user_name: str) -> None:
+    if not FEEDBACK_EMAIL:
+        return
+    try:
+        import boto3
+        ses = boto3.client("ses", region_name=os.getenv("S3_REGION", "us-east-1"))
+        subject = "Job Assistant — User Issue Report"
+        body = f"From: {reply_email or 'anonymous'}\nUser: {user_name or 'not logged in'}\nPage: {page_url or 'unknown'}\n\n{message}"
+        ses.send_email(
+            Source=FEEDBACK_EMAIL,
+            Destination={"ToAddresses": [FEEDBACK_EMAIL]},
+            Message={
+                "Subject": {"Data": subject},
+                "Body": {"Text": {"Data": body}},
+            },
+        )
+    except Exception as e:
+        logger.warning("SES send_email failed: %s", e)
+
+
+@app.route("/feedback", methods=["POST"])
+def submit_feedback():
+    data = request.get_json(force=True)
+    message = (data.get("message") or "").strip()
+    if not message:
+        return jsonify({"error": "message required"}), 400
+
+    reply_email = (data.get("reply_email") or "").strip()
+    page_url = (data.get("page_url") or "").strip()
+
+    # Try to get user from token if provided (optional)
+    user_id = None
+    user_name = ""
+    try:
+        from tools.auth import decode_jwt
+        auth = request.headers.get("Authorization", "")
+        if auth.startswith("Bearer "):
+            payload = decode_jwt(auth[7:])
+            user_id = payload.get("sub")
+            db = SessionLocal()
+            u = db.query(User).filter_by(id=user_id).first()
+            if u:
+                user_name = u.name or u.email or ""
+            db.close()
+    except Exception:
+        pass
+
+    db = SessionLocal()
+    try:
+        report = FeedbackReport(
+            user_id=user_id,
+            message=message,
+            reply_email=reply_email or None,
+            page_url=page_url or None,
+        )
+        db.add(report)
+        db.commit()
+    finally:
+        db.close()
+
+    _send_feedback_email(message, reply_email, page_url, user_name)
+    return jsonify({"ok": True})
 
 
 # init tables for local SQLite dev (Alembic handles Postgres in prod)
