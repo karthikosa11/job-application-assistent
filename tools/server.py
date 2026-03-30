@@ -707,6 +707,22 @@ def submit_feedback():
     return jsonify({"ok": True})
 
 
+@app.route("/run-migrations", methods=["POST"])
+def run_migrations():
+    secret = request.headers.get("X-Migrate-Secret", "")
+    if secret != os.getenv("MIGRATE_SECRET", ""):
+        return jsonify({"error": "forbidden"}), 403
+    try:
+        from alembic.config import Config
+        from alembic import command
+        cfg = Config("alembic.ini")
+        command.upgrade(cfg, "head")
+        return jsonify({"ok": True})
+    except Exception as e:
+        logger.error("migration failed: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
 # init tables for local SQLite dev (Alembic handles Postgres in prod)
 if os.getenv("DATABASE_URL", "").startswith("sqlite") or not os.getenv("DATABASE_URL"):
     try:
