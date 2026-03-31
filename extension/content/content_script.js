@@ -37,20 +37,29 @@
         ".job-details-jobs-unified-top-card__primary-description-without-tagline a",
         "[class*='company-name' i] a",
         "[class*='topcard__org-name' i] a",
-        // Newer LinkedIn layouts (2024–2025)
+        // Newer LinkedIn layouts (2024–2026)
         ".artdeco-entity-lockup__subtitle a",
         "[class*='job-details-top-card__company' i] a",
         "[class*='hirer-card__hirer-information' i] a",
         "[class*='jobs-poster__name' i]",
+        "[class*='job-details-jobs-unified-top-card__company-name' i]",
+        "[class*='topcard__flavor' i] a",
+        "[class*='jobs-unified-top-card__subtitle-primary' i] a",
+        ".job-details-jobs-unified-top-card__company-name",
       ].join(", "),
       descSel: [
-        // Most specific first — avoid container IDs like #job-details which wrap
-        // the entire panel (metadata + description) and return noise at the top
+        // 2025–2026 LinkedIn redesign
+        "#job-details",
+        ".jobs-description--reformatted",
+        "[class*='jobs-description--reformatted' i]",
+        // Previous selectors
         ".jobs-description-content__text",
         ".jobs-description__content",
         ".jobs-description-content",
         ".jobs-description .jobs-box__html-content",
         ".jobs-description",
+        "[class*='jobs-description' i]",
+        "[class*='jobs-box__html-content' i]",
       ].join(", "),
       labelSel: ".fb-dash-form-element__label, .artdeco-text-input--label, label",
     },
