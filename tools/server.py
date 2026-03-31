@@ -113,7 +113,7 @@ def auth_google_callback():
             user.name = name
             user.picture_url = picture
         # Always update the google token (refresh it on every login)
-        user.google_token_json  # refresh on every login = encrypt(json.dumps(google_token_data))
+        user.google_token_json = encrypt(json.dumps(google_token_data))
         db.commit()
         jwt_token = create_jwt(user.id, email)
     finally:
