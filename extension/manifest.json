@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Job Application Assistant",
   "version": "1.0.0",
-  "description": "AI-powered job application assistant with Google Sheets tracking, Gmail monitoring, and WhatsApp notifications.",
+  "description": "AI-powered job application assistant. Auto-fills applications, generates cover letters, tracks applications in Google Sheets, and chats with AI about jobs.",
 
   "permissions": [
     "storage",
@@ -32,8 +32,7 @@
     "https://angel.co/*",
     "https://*.builtin.com/*",
     "https://apply.workable.com/*",
-    "https://www.dice.com/*",
-    "<all_urls>"
+    "https://www.dice.com/*"
   ],
 
   "background": {
@@ -51,7 +50,27 @@
 
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "https://www.linkedin.com/jobs/*",
+        "https://boards.greenhouse.io/*",
+        "https://*.greenhouse.io/jobs/*",
+        "https://jobs.lever.co/*",
+        "https://*.myworkdayjobs.com/*",
+        "https://*.workday.com/*",
+        "https://*.icims.com/*",
+        "https://*.smartrecruiters.com/*",
+        "https://www.indeed.com/viewjob*",
+        "https://*.taleo.net/*",
+        "https://*.jobvite.com/*",
+        "https://www.glassdoor.com/job-listing/*",
+        "https://www.glassdoor.com/Jobs/*",
+        "https://www.ziprecruiter.com/jobs/*",
+        "https://wellfound.com/jobs/*",
+        "https://angel.co/jobs/*",
+        "https://*.builtin.com/jobs/*",
+        "https://apply.workable.com/*",
+        "https://www.dice.com/jobs/*"
+      ],
       "js": ["content/content_script.js"],
       "run_at": "document_idle"
     }
@@ -67,7 +86,26 @@
         "sidebar/sidebar.js",
         "assets/*"
       ],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "https://www.linkedin.com/*",
+        "https://boards.greenhouse.io/*",
+        "https://*.greenhouse.io/*",
+        "https://jobs.lever.co/*",
+        "https://*.myworkdayjobs.com/*",
+        "https://*.workday.com/*",
+        "https://*.icims.com/*",
+        "https://*.smartrecruiters.com/*",
+        "https://www.indeed.com/*",
+        "https://*.taleo.net/*",
+        "https://*.jobvite.com/*",
+        "https://www.glassdoor.com/*",
+        "https://www.ziprecruiter.com/*",
+        "https://wellfound.com/*",
+        "https://angel.co/*",
+        "https://*.builtin.com/*",
+        "https://apply.workable.com/*",
+        "https://www.dice.com/*"
+      ]
     }
   ],
 
