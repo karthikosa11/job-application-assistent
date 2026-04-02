@@ -1,4 +1,5 @@
 Job Application Assistant
+
 A Chrome extension that helps you apply for jobs faster using AI. It reads job postings automatically, gives you tailored advice based on your resume, generates cover letters, and logs everything to Google Sheets — all without leaving the job page.
 
 Built with Python, Flask, PostgreSQL, AWS, and Anthropic Claude.
