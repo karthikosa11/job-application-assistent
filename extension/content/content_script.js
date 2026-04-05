@@ -798,13 +798,23 @@
         return true;
       }
     }
-    // Last fallback: if label mentions cover letter, find any contenteditable on the page
+    // Last fallback: find the contenteditable closest to a label matching the needle
     if (needle.includes("cover letter") || needle.includes("cover_letter")) {
-      const ce = document.querySelector("[contenteditable='true']");
-      console.log("[JobAssist] cover letter fallback, contenteditable found:", ce);
-      if (ce) { _fillContentEditable(ce, value); return true; }
+      // Search all labels for one that says "cover letter" and find its nearby contenteditable
+      const allLabels = document.querySelectorAll("label, p, span, div, legend");
+      for (const lbl of allLabels) {
+        const t = _normalizeLabel(lbl.innerText);
+        if (!t.includes("cover letter")) continue;
+        // Walk up to find a parent that contains a contenteditable
+        let el = lbl;
+        for (let i = 0; i < 6; i++) {
+          el = el.parentElement;
+          if (!el) break;
+          const ce = el.querySelector("[contenteditable='true']");
+          if (ce) { _fillContentEditable(ce, value); return true; }
+        }
+      }
     }
-    console.log("[JobAssist] __fillField: no match found for label:", labelText);
     return false;
   };
 
