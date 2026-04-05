@@ -1055,9 +1055,16 @@
   }
 
   window.addEventListener("message", (event) => {
+    if (event.data?.type === "PICK_TO_FILL") {
+      // Go straight to pick mode — user clicks the exact field they want
+      _enterPickMode(event.data.value);
+      const iframe = document.querySelector("#__job-assistant-container iframe");
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage({ type: "PICK_MODE_STARTED" }, "*");
+      }
+    }
     if (event.data?.type === "FILL_FIELD") {
       const filled = window.__fillField(event.data.label, event.data.value);
-      // If auto-fill failed, enter pick mode so user can click the field
       if (!filled) {
         _enterPickMode(event.data.value);
         const iframe = document.querySelector("#__job-assistant-container iframe");

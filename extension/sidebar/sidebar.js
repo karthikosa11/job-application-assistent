@@ -948,7 +948,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("btnFillCoverLetter").addEventListener("click", () => {
     const text = document.getElementById("logCoverLetter").value.trim();
     if (!text) { showToast("Generate a cover letter first.", "error"); return; }
-    window.parent.postMessage({ type: "FILL_FIELD", label: "cover letter", value: text }, "*");
+    // Skip auto-detection — go straight to pick mode so user clicks the exact field
+    window.parent.postMessage({ type: "PICK_TO_FILL", value: text }, "*");
   });
 
   window.addEventListener("message", (e) => {
