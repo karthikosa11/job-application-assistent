@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Job Application Assistant",
   "version": "1.0.0",
-  "description": "AI-powered job application assistant. Auto-fills applications, generates cover letters, tracks applications in Google Sheets, and chats with AI about jobs.",
+  "description": "AI-powered job assistant. Auto-fills applications, generates cover letters, tracks jobs in Google Sheets, and chats with AI.",
 
   "permissions": [
     "storage",
@@ -32,7 +32,12 @@
     "https://angel.co/*",
     "https://*.builtin.com/*",
     "https://apply.workable.com/*",
-    "https://www.dice.com/*"
+    "https://www.dice.com/*",
+    "https://*.ashbyhq.com/*",
+    "https://*.bamboohr.com/*",
+    "https://*.airtable.com/*",
+    "https://careers.*.*/*",
+    "https://jobs.*.*/*"
   ],
 
   "background": {
@@ -53,23 +58,27 @@
       "matches": [
         "https://www.linkedin.com/jobs/*",
         "https://boards.greenhouse.io/*",
-        "https://*.greenhouse.io/jobs/*",
+        "https://*.greenhouse.io/*",
         "https://jobs.lever.co/*",
         "https://*.myworkdayjobs.com/*",
         "https://*.workday.com/*",
         "https://*.icims.com/*",
         "https://*.smartrecruiters.com/*",
-        "https://www.indeed.com/viewjob*",
+        "https://www.indeed.com/*",
         "https://*.taleo.net/*",
         "https://*.jobvite.com/*",
-        "https://www.glassdoor.com/job-listing/*",
-        "https://www.glassdoor.com/Jobs/*",
-        "https://www.ziprecruiter.com/jobs/*",
-        "https://wellfound.com/jobs/*",
-        "https://angel.co/jobs/*",
-        "https://*.builtin.com/jobs/*",
+        "https://www.glassdoor.com/*",
+        "https://www.ziprecruiter.com/*",
+        "https://wellfound.com/*",
+        "https://angel.co/*",
+        "https://*.builtin.com/*",
         "https://apply.workable.com/*",
-        "https://www.dice.com/jobs/*"
+        "https://www.dice.com/*",
+        "https://*.ashbyhq.com/*",
+        "https://*.bamboohr.com/*",
+        "https://*.airtable.com/*",
+        "https://careers.*.*/*",
+        "https://jobs.*.*/*"
       ],
       "js": ["content/content_script.js"],
       "run_at": "document_idle"
@@ -104,7 +113,12 @@
         "https://angel.co/*",
         "https://*.builtin.com/*",
         "https://apply.workable.com/*",
-        "https://www.dice.com/*"
+        "https://www.dice.com/*",
+        "https://*.ashbyhq.com/*",
+        "https://*.bamboohr.com/*",
+        "https://*.airtable.com/*",
+        "https://careers.*.*/*",
+        "https://jobs.*.*/*"
       ]
     }
   ],
