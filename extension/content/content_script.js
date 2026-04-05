@@ -801,22 +801,33 @@
     // Last fallback: if label mentions cover letter, find any contenteditable on the page
     if (needle.includes("cover letter") || needle.includes("cover_letter")) {
       const ce = document.querySelector("[contenteditable='true']");
+      console.log("[JobAssist] cover letter fallback, contenteditable found:", ce);
       if (ce) { _fillContentEditable(ce, value); return true; }
     }
+    console.log("[JobAssist] __fillField: no match found for label:", labelText);
     return false;
   };
 
   function _fillContentEditable(el, value) {
     el.focus();
-    // Select all existing content and replace
-    document.execCommand("selectAll", false, null);
-    document.execCommand("insertText", false, value);
-    // If execCommand didn't work (some browsers block it), set innerHTML directly
-    if (!el.innerText.trim()) {
-      el.innerText = value;
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-      el.dispatchEvent(new Event("change", { bubbles: true }));
-    }
+
+    // Method 1: execCommand (works on most sites)
+    try {
+      document.execCommand("selectAll", false, null);
+      const inserted = document.execCommand("insertText", false, value);
+      if (inserted && el.innerText.trim()) return;
+    } catch (_) {}
+
+    // Method 2: set innerText directly and fire all events
+    el.innerText = value;
+    ["input", "change", "keyup", "blur"].forEach(evtName => {
+      el.dispatchEvent(new Event(evtName, { bubbles: true }));
+    });
+    // React uses a special __reactFiber / __reactEventHandlers approach
+    // Try triggering via InputEvent as well
+    try {
+      el.dispatchEvent(new InputEvent("input", { bubbles: true, data: value, inputType: "insertText" }));
+    } catch (_) {}
   }
 
   function _fillInput(input, value) {
