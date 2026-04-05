@@ -772,6 +772,9 @@
         if (forAttr) input = document.getElementById(forAttr);
         if (!input) input = label.nextElementSibling;
         if (input && !["INPUT", "TEXTAREA", "SELECT"].includes(input.tagName)) {
+          // Check for contenteditable rich text editor first
+          const ce = input.querySelector("[contenteditable='true']");
+          if (ce) { _fillContentEditable(ce, value); return true; }
           input = input.querySelector("input, textarea, select");
         }
         if (!input) input = label.querySelector("input, textarea, select");
@@ -780,6 +783,10 @@
           _fillInput(input, value);
           return true;
         }
+
+        // Check if label's parent contains a contenteditable editor
+        const parentCe = label.closest("div, section, fieldset")?.querySelector("[contenteditable='true']");
+        if (parentCe) { _fillContentEditable(parentCe, value); return true; }
       }
     }
     // Fallback: find any textarea whose placeholder/aria-label loosely matches
@@ -791,8 +798,26 @@
         return true;
       }
     }
+    // Last fallback: if label mentions cover letter, find any contenteditable on the page
+    if (needle.includes("cover letter") || needle.includes("cover_letter")) {
+      const ce = document.querySelector("[contenteditable='true']");
+      if (ce) { _fillContentEditable(ce, value); return true; }
+    }
     return false;
   };
+
+  function _fillContentEditable(el, value) {
+    el.focus();
+    // Select all existing content and replace
+    document.execCommand("selectAll", false, null);
+    document.execCommand("insertText", false, value);
+    // If execCommand didn't work (some browsers block it), set innerHTML directly
+    if (!el.innerText.trim()) {
+      el.innerText = value;
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  }
 
   function _fillInput(input, value) {
     const tag = input.tagName;
