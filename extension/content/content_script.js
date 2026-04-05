@@ -757,14 +757,23 @@
    * Fill a form field by label text.
    * Dispatches native events so React/Vue controlled inputs update their state.
    */
+  function _normalizeLabel(t) {
+    return (t || "").toLowerCase().replace(/[*\s]+/g, " ").trim();
+  }
+
   window.__fillField = function (labelText, value) {
+    const needle = _normalizeLabel(labelText);
     const labels = document.querySelectorAll("label, [data-automation-id='formLabel']");
     for (const label of labels) {
-      if (label.innerText.trim().toLowerCase() === labelText.toLowerCase()) {
+      const hay = _normalizeLabel(label.innerText);
+      if (hay === needle || hay.startsWith(needle) || needle.startsWith(hay)) {
         let input = null;
         const forAttr = label.getAttribute("for");
         if (forAttr) input = document.getElementById(forAttr);
         if (!input) input = label.nextElementSibling;
+        if (input && !["INPUT", "TEXTAREA", "SELECT"].includes(input.tagName)) {
+          input = input.querySelector("input, textarea, select");
+        }
         if (!input) input = label.querySelector("input, textarea, select");
 
         if (input) {
@@ -773,11 +782,11 @@
         }
       }
     }
-    // Fallback: find any input whose placeholder/aria-label matches
+    // Fallback: find any textarea whose placeholder/aria-label loosely matches
     const all = document.querySelectorAll("input, textarea");
     for (const el of all) {
-      const hint = (el.placeholder || el.getAttribute("aria-label") || "").toLowerCase();
-      if (hint && hint.includes(labelText.toLowerCase().slice(0, 20))) {
+      const hint = _normalizeLabel(el.placeholder || el.getAttribute("aria-label") || "");
+      if (hint && hint.includes(needle.slice(0, 20))) {
         _fillInput(el, value);
         return true;
       }
@@ -786,17 +795,24 @@
   };
 
   function _fillInput(input, value) {
-    // Handle React-controlled inputs via Object.getOwnPropertyDescriptor
-    const nativeInput = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value") ||
-      Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value");
-    if (nativeInput && nativeInput.set) {
-      nativeInput.set.call(input, value);
+    const tag = input.tagName;
+    // Handle React-controlled inputs — use native setter so React detects the change
+    const proto = tag === "TEXTAREA"
+      ? window.HTMLTextAreaElement.prototype
+      : window.HTMLInputElement.prototype;
+    const nativeSetter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
+    if (nativeSetter) {
+      nativeSetter.call(input, value);
     } else {
       input.value = value;
     }
-    ["input", "change", "blur", "keyup"].forEach(event => {
-      input.dispatchEvent(new Event(event, { bubbles: true }));
+    ["input", "change", "blur", "keyup"].forEach(evtName => {
+      input.dispatchEvent(new Event(evtName, { bubbles: true }));
     });
+    // Also dispatch a React-style InputEvent for sites using synthetic events
+    try {
+      input.dispatchEvent(new InputEvent("input", { bubbles: true, data: value }));
+    } catch (_) {}
   }
 
   // ─── Sidebar injection ────────────────────────────────────────────────────
