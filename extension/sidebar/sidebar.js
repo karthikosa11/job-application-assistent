@@ -170,11 +170,12 @@ function renderFields() {
 function fieldHTML(field, id, isQ) {
   const val = field.currentValue ? `<div class="field-value">${escHtml(field.currentValue.slice(0, 80))}</div>` : "";
   const suggestBtn = `<button class="btn btn-primary btn-sm" data-suggest="${id.split('-')[1]}" data-type="${id.split('-')[0]}">✨ Suggest</button>`;
+  const showSuggest = isQ && field.type === "textarea";
   return `
     <div class="field-item ${isQ ? 'question' : ''}">
       <div class="field-header">
         <div class="field-label">${escHtml(field.label)}</div>
-        ${isQ ? suggestBtn : ''}
+        ${showSuggest ? suggestBtn : ''}
       </div>
       ${val}
     </div>`;

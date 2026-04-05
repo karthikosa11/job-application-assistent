@@ -274,7 +274,7 @@
   ];
 
   function isJunkLabel(text) {
-    if (text.length > 80) return true;  // too long — likely a paragraph
+    if (text.length > 300) return true;  // too long — likely a paragraph, not a field label
     return SKIP_LABEL_PATTERNS.some(p => p.test(text.trim()));
   }
 
@@ -330,8 +330,14 @@
       l.startsWith("why") ||
       l.startsWith("how") ||
       l.startsWith("describe") ||
+      l.startsWith("please describe") ||
+      l.startsWith("please explain") ||
+      l.startsWith("please tell") ||
+      l.startsWith("please share") ||
+      l.startsWith("please provide") ||
       l.startsWith("tell us") ||
-      l.startsWith("explain");
+      l.startsWith("explain") ||
+      l.startsWith("share");
   }
 
   // ── Schema.org JobPosting extraction (most reliable on career sites) ──────
