@@ -798,21 +798,44 @@
         return true;
       }
     }
-    // Last fallback: find the contenteditable closest to a label matching the needle
+    // Last fallback: find the contenteditable that appears AFTER a "cover letter" label in DOM order
     if (needle.includes("cover letter") || needle.includes("cover_letter")) {
-      // Search all labels for one that says "cover letter" and find its nearby contenteditable
-      const allLabels = document.querySelectorAll("label, p, span, div, legend");
-      for (const lbl of allLabels) {
-        const t = _normalizeLabel(lbl.innerText);
-        if (!t.includes("cover letter")) continue;
-        // Walk up to find a parent that contains a contenteditable
-        let el = lbl;
-        for (let i = 0; i < 6; i++) {
-          el = el.parentElement;
-          if (!el) break;
-          const ce = el.querySelector("[contenteditable='true']");
-          if (ce) { _fillContentEditable(ce, value); return true; }
+      // Get all elements with "cover letter" text and all contenteditable elements
+      const allEls = Array.from(document.querySelectorAll("*"));
+      const allCe = allEls.filter(el => el.getAttribute("contenteditable") === "true");
+
+      // Find the index of the first element whose text contains "cover letter"
+      let coverLabelIndex = -1;
+      for (let i = 0; i < allEls.length; i++) {
+        const el = allEls[i];
+        // Only look at leaf-ish elements (labels, spans, p, legend) to avoid matching huge sections
+        const tag = el.tagName.toLowerCase();
+        if (!["label", "span", "p", "legend", "div", "h1", "h2", "h3", "h4"].includes(tag)) continue;
+        // Skip elements that have many children (they are containers not labels)
+        if (el.children.length > 3) continue;
+        const t = _normalizeLabel(el.innerText);
+        if (t === "cover letter" || t.startsWith("cover letter")) {
+          coverLabelIndex = i;
+          break;
         }
+      }
+
+      if (coverLabelIndex >= 0 && allCe.length > 0) {
+        // Find the first contenteditable that comes AFTER the cover letter label in DOM order
+        for (const ce of allCe) {
+          const ceIndex = allEls.indexOf(ce);
+          if (ceIndex > coverLabelIndex) {
+            _fillContentEditable(ce, value);
+            return true;
+          }
+        }
+      }
+
+      // If nothing found after the label, try the last contenteditable on the page
+      // (cover letter is usually the last rich text field)
+      if (allCe.length > 0) {
+        _fillContentEditable(allCe[allCe.length - 1], value);
+        return true;
       }
     }
     return false;
