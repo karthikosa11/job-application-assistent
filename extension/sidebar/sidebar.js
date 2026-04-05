@@ -945,6 +945,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  document.getElementById("btnFillCoverLetter").addEventListener("click", () => {
+    const text = document.getElementById("logCoverLetter").value.trim();
+    if (!text) { showToast("Generate a cover letter first.", "error"); return; }
+    window.parent.postMessage({ type: "FILL_FIELD", label: "cover letter", value: text }, "*");
+    showToast("Cover letter filled!", "success");
+  });
+
   document.getElementById("btnSubmitLog").addEventListener("click", submitLog);
 
   // Confidence slider live label
