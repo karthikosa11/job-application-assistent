@@ -35,9 +35,7 @@
     "https://www.dice.com/*",
     "https://*.ashbyhq.com/*",
     "https://*.bamboohr.com/*",
-    "https://*.airtable.com/*",
-    "https://careers.*.*/*",
-    "https://jobs.*.*/*"
+    "https://*.airtable.com/*"
   ],
 
   "background": {
@@ -76,9 +74,7 @@
         "https://www.dice.com/*",
         "https://*.ashbyhq.com/*",
         "https://*.bamboohr.com/*",
-        "https://*.airtable.com/*",
-        "https://careers.*.*/*",
-        "https://jobs.*.*/*"
+        "https://*.airtable.com/*"
       ],
       "js": ["content/content_script.js"],
       "run_at": "document_idle"
@@ -116,9 +112,7 @@
         "https://www.dice.com/*",
         "https://*.ashbyhq.com/*",
         "https://*.bamboohr.com/*",
-        "https://*.airtable.com/*",
-        "https://careers.*.*/*",
-        "https://jobs.*.*/*"
+        "https://*.airtable.com/*"
       ]
     }
   ],
