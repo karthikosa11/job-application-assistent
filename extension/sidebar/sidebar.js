@@ -949,7 +949,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const text = document.getElementById("logCoverLetter").value.trim();
     if (!text) { showToast("Generate a cover letter first.", "error"); return; }
     window.parent.postMessage({ type: "FILL_FIELD", label: "cover letter", value: text }, "*");
-    showToast("Cover letter filled!", "success");
+  });
+
+  window.addEventListener("message", (e) => {
+    if (e.data?.type === "PICK_MODE_STARTED") {
+      showToast("Click the cover letter field on the page", "success");
+    }
+    if (e.data?.type === "PICK_FILL_DONE") {
+      showToast("Cover letter filled!", "success");
+    }
   });
 
   document.getElementById("btnSubmitLog").addEventListener("click", submitLog);

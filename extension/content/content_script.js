@@ -994,9 +994,77 @@
     } catch (_) { cb(fresh); }
   }
 
+  // ─── Pick-to-fill mode ───────────────────────────────────────────────────────
+  let _pickMode = null; // { value, resolve }
+
+  function _enterPickMode(value) {
+    // Show banner
+    const banner = document.createElement("div");
+    banner.id = "__ja-pick-banner";
+    Object.assign(banner.style, {
+      position: "fixed", top: "0", left: "0", right: "380px",
+      zIndex: "2147483646", background: "#5b5fe8", color: "#fff",
+      padding: "10px 16px", fontSize: "14px", fontFamily: "sans-serif",
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+    });
+    banner.innerHTML = `<span>👆 Click the field you want to fill</span><button id="__ja-pick-cancel" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:13px">Cancel</button>`;
+    document.body.appendChild(banner);
+
+    // Highlight all fillable fields
+    const fields = document.querySelectorAll("input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=file]), textarea, [contenteditable='true']");
+    fields.forEach(el => {
+      el.dataset.__jaOrigOutline = el.style.outline || "";
+      el.style.outline = "3px solid #5b5fe8";
+      el.style.outlineOffset = "2px";
+    });
+
+    _pickMode = { value };
+
+    document.getElementById("__ja-pick-cancel").addEventListener("click", _exitPickMode);
+
+    // Listen for click on any field
+    document._jaPick = function(e) {
+      const el = e.target.closest("input, textarea, [contenteditable='true']");
+      if (!el) return;
+      e.preventDefault();
+      e.stopPropagation();
+      _exitPickMode();
+      if (el.getAttribute("contenteditable") === "true") {
+        _fillContentEditable(el, _pickMode?.value || value);
+      } else {
+        _fillInput(el, _pickMode?.value || value);
+      }
+      // Notify sidebar
+      const iframe = document.querySelector("#__job-assistant-container iframe");
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage({ type: "PICK_FILL_DONE" }, "*");
+      }
+    };
+    document.addEventListener("click", document._jaPick, true);
+  }
+
+  function _exitPickMode() {
+    _pickMode = null;
+    document.getElementById("__ja-pick-banner")?.remove();
+    document.querySelectorAll("input, textarea, [contenteditable='true']").forEach(el => {
+      el.style.outline = el.dataset.__jaOrigOutline || "";
+      el.style.outlineOffset = "";
+    });
+    document.removeEventListener("click", document._jaPick, true);
+  }
+
   window.addEventListener("message", (event) => {
     if (event.data?.type === "FILL_FIELD") {
-      window.__fillField(event.data.label, event.data.value);
+      const filled = window.__fillField(event.data.label, event.data.value);
+      // If auto-fill failed, enter pick mode so user can click the field
+      if (!filled) {
+        _enterPickMode(event.data.value);
+        const iframe = document.querySelector("#__job-assistant-container iframe");
+        if (iframe?.contentWindow) {
+          iframe.contentWindow.postMessage({ type: "PICK_MODE_STARTED" }, "*");
+        }
+      }
     }
     if (event.data?.type === "GET_PAGE_CONTEXT") {
       const platform = detectPlatform();
