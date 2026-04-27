@@ -1,92 +1,96 @@
-Job Application Assistant
+# Job Application Assistant — Chrome Extension
 
-A Chrome extension that helps you apply for jobs faster using AI. It reads job postings automatically, gives you tailored advice based on your resume, generates cover letters, and logs everything to Google Sheets — all without leaving the job page.
+An AI-powered Chrome extension that auto-fills job applications, generates cover letters, tracks your applications, and chats with AI — all from a sidebar that lives inside job boards.
 
-Built with Python, Flask, PostgreSQL, AWS, and Anthropic Claude.
+---
 
-What it does
-When you open a job posting on LinkedIn, Indeed, Greenhouse, or any major job board, a panel slides in on the right side of your browser. From there you can:
+## Features
 
-Get a Suggestion — AI reads the job description and your resume and tells you exactly how to position yourself for that role
-Generate a Cover Letter — one click writes a full cover letter tailored to that specific job
-Log the Application — saves the job to your history and adds a row to your Google Sheet automatically
-Chat with AI — ask questions about the job, get interview tips, salary guidance, anything
-Memory — remembers answers you gave on past applications and suggests them when similar questions come up again
-Supported job platforms
-LinkedIn, Indeed, Glassdoor, Greenhouse, Lever, Workday, ZipRecruiter, Wellfound, iCIMS, SmartRecruiters, Dice, Builtin, Workable, Taleo, Jobvite, and more.
+| Feature | Description |
+|---|---|
+| **Auto-fill** | Detects every field on a job application and fills them using your resume in one click |
+| **AI Cover Letter** | Generate a tailored cover letter instantly, or upload your own PDF and fill it directly into the page |
+| **Application Tracker** | Log every job you apply to with company, role, status, and confidence score |
+| **AI Chat** | Ask tough application questions and get answers grounded in your own resume |
+| **Answer History** | Save your best answers and reuse them across applications |
 
-Tech stack
-Extension
+## Supported Job Boards
 
-Chrome Extension Manifest V3
-Vanilla JavaScript
-Chrome Identity API for Google OAuth
-Backend
+LinkedIn · Greenhouse · Lever · Workday · Indeed · Glassdoor · Ashby · SmartRecruiters · Wellfound · Dice · ZipRecruiter · iCIMS · Taleo · Jobvite · BambooHR · Workable · Airtable
 
-Python, Flask, Gunicorn
-PostgreSQL (Amazon RDS)
-SQLAlchemy + Alembic migrations
-JWT authentication
-Fernet encryption for sensitive data
-AI
+---
 
-Anthropic Claude (users bring their own API key)
-RAG-based memory system for reusing past application answers
-Prompt engineering for suggestions, cover letters, and chat
-Infrastructure
+## Installation
 
-AWS App Runner (server hosting)
-AWS S3 (resume file storage)
-AWS ECR (Docker image registry)
-Amazon SES (email notifications)
-Docker for containerization
-How to set it up
-1. Clone the repo
+> The extension is not on the Chrome Web Store. Follow the steps below to load it in 2 minutes.
 
-git clone https://github.com/karthikosa11/job-application-assistant.git
-cd job-application-assistant
-2. Set up environment variables
+### Step 1 — Clone the repo
 
-cp .env.production.example .env
-Fill in these values in your .env file:
+```bash
+git clone https://github.com/karthikosa11/job-application-assistent.git
+```
 
+### Step 2 — Open Chrome Extensions
 
-DATABASE_URL=postgresql://user:pass@host:5432/jobassist
-S3_BUCKET_NAME=your-bucket-name
-S3_REGION=us-east-1
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
-JWT_SECRET=...
-ENCRYPTION_KEY=...
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-APP_URL=https://your-app-runner-url.awsapprunner.com
-FEEDBACK_EMAIL=your@email.com
-3. Run database migrations
+In Chrome, go to:
+```
+chrome://extensions/
+```
 
-pip install -r requirements.txt
-alembic upgrade head
-4. Start the server
+### Step 3 — Enable Developer Mode
 
-python tools/server.py
-Or with Docker:
+Toggle **Developer mode** ON in the top-right corner.
 
+### Step 4 — Load the extension
 
-docker build -t job-assistant .
-docker run -p 8080:8080 --env-file .env job-assistant
-5. Load the extension in Chrome
-Open Chrome and go to chrome://extensions
-Turn on Developer mode (top right toggle)
-Click Load unpacked
-Select the extension/ folder
-How to use it
-Sign in with Google in the extension popup
-Go to Settings and enter your Anthropic API key
-Upload your resume in the Settings page
-Open any job posting — the sidebar will appear automatically
-Click Get Suggestion to get AI feedback, or Generate Cover Letter to write one
-For Google Sheets tracking:
+Click **"Load unpacked"** and select the `extension` folder inside the cloned repo:
 
-Create a new Google Sheet
-Copy the Sheet ID from the URL (the long string in the middle)
-Paste it in Settings under Google Sheets ID and save
+```
+job-application-assistent/
+└── extension/    ← select THIS folder
+```
+
+### Step 5 — Pin it to your toolbar
+
+Click the puzzle piece icon (🧩) in Chrome → find **Job Application Assistant** → click the pin icon.
+
+---
+
+## First-Time Sign In
+
+1. Click the extension icon in your toolbar
+2. Click **"Sign in with Google"**
+3. You will see a screen that says **"Google hasn't verified this app"** — this is expected for open-source tools
+4. Click **"Advanced"** at the bottom left → then **"Go to Job Application Assistant (unsafe)"**
+5. Sign in with your Google account — you are in
+
+> Your data is only used to power the extension features. Nothing is sold or shared.
+
+---
+
+## How to Use
+
+1. Go to any supported job board (e.g. a LinkedIn job posting)
+2. The sidebar opens automatically on the right side of the page
+3. Upload your resume via the **Resume Manager** (click the resume badge at the top of the sidebar)
+4. Click **"Fill All"** to auto-fill the entire application form
+5. Use the **Chat** tab to get AI help with tricky questions
+6. Click **"Log This Application"** to track it in your dashboard
+
+---
+
+## Tech Stack
+
+**Extension** — Chrome Manifest V3, Vanilla JavaScript, Chrome Identity API
+
+**Backend** — Python, FastAPI, PostgreSQL, JWT authentication, AWS App Runner
+
+**AI** — Anthropic Claude, RAG-based memory for reusing past answers
+
+**Infrastructure** — AWS App Runner, S3, ECR, Docker
+
+---
+
+## Reporting Issues
+
+Use the **"Report Issue"** link inside the extension popup, or open a [GitHub Issue](https://github.com/karthikosa11/job-application-assistent/issues).
